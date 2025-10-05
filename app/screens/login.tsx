@@ -184,7 +184,7 @@ export default function Login() {
               </View>
 
               <View style={styles.formContainer}>
-                <Text style={styles.title}>Bienvenido a carol</Text>
+                <Text style={styles.title}>Bienvenido a Odontología carol</Text>
                 <Text style={styles.subtitle}>Accede a tu cuenta dental</Text>
 
                 <View style={styles.inputContainer}>
