@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useRef } from "react";
 import {
   View,
   TextInput,
@@ -25,11 +25,13 @@ import dentistImage from "../../assets/images/dentist.png";
 import logoImage from "../../assets/images/logo.png";
 
 const { width, height } = Dimensions.get("window");
-const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail|hotmail|outlook|yahoo|live|uthh\.edu)\.(com|mx)$/;
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@(gmail|hotmail|outlook|yahoo|live|uthh\.edu)\.(com|mx)$/;
+const API_URL = "https://back-end-4803.onrender.com/api/users/loginMovil";
 
 export default function Login() {
   const router = useRouter();
   const auth = useContext(AuthContext);
+  const scrollViewRef = useRef<ScrollView>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,9 +39,27 @@ export default function Login() {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
     loadSavedEmail();
+
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => setKeyboardVisible(true)
+    );
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false);
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+      }
+    );
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
   }, []);
 
   if (!auth) {
@@ -48,7 +68,7 @@ export default function Login() {
 
   const { login } = auth;
 
-  // Carga el email guardado
+  // Carga email guardado
   const loadSavedEmail = async () => {
     try {
       const savedEmail = await AsyncStorage.getItem("savedEmail");
@@ -72,7 +92,7 @@ export default function Login() {
       }
     } catch (err) {
       console.error("Error abriendo URL:", err);
-      Alert.alert("Error", "No se pudo abrir el enlace. Verifica tu conexión.");
+      Alert.alert("Error", "No se pudo abrir el enlace.");
     }
   };
 
@@ -84,95 +104,94 @@ export default function Login() {
     handleOpenUrl("https://odontologiacarol.com/register");
   };
 
-  // Valida el correo
-  const validateEmail = (email: string): boolean => {
-    if (!email.trim()) {
-      setEmailError("El correo es requerido");
-      return false;
+  // Valida campo con mensaje personalizado
+  const validateField = (value: string, fieldName: string, regex?: RegExp) => {
+    if (!value.trim()) {
+      return `${fieldName} es requerido`;
     }
-    if (!emailRegex.test(email)) {
-      setEmailError("El correo no es válido");
-      return false;
+    if (regex && !regex.test(value)) {
+      return `${fieldName} no es válido`;
     }
-    setEmailError("");
-    return true;
+    return "";
   };
 
-  // Valida la contraseña
-  const validatePassword = (password: string): boolean => {
-    if (!password.trim()) {
-      setPasswordError("La contraseña es requerida");
-      return false;
-    }
-    setPasswordError("");
-    return true;
+  // Valida formulario completo
+  const validateForm = () => {
+    const emailErr = validateField(email, "El correo", EMAIL_REGEX);
+    const passErr = validateField(password, "La contraseña");
+
+    setEmailError(emailErr);
+    setPasswordError(passErr);
+
+    return !emailErr && !passErr;
   };
 
-  // Maneja el inicio de sesión
+  // Procesa respuesta del servidor
+  const handleServerResponse = async (response: Response, data: any) => {
+    if (response.ok) {
+      if (!data.user?.id) {
+        setPasswordError("Error en el servidor");
+        return;
+      }
+
+      const userData = {
+        id: data.user.id.toString(),
+        name: data.user.name || data.user.nombre || "Usuario",
+        email: data.user.email || email,
+      };
+
+      await login(data.user.id.toString(), userData);
+      
+      if (rememberMe) {
+        await AsyncStorage.setItem("savedEmail", email.trim());
+      } else {
+        await AsyncStorage.removeItem("savedEmail");
+      }
+      
+      router.replace("/(tabs)");
+    } else {
+      handleLoginError(data.message);
+    }
+  };
+
+  // Maneja errores de login
+  const handleLoginError = (message?: string) => {
+    if (!message) {
+      setPasswordError("Credenciales incorrectas");
+      return;
+    }
+
+    const msg = message.toLowerCase();
+    if (msg.includes("contraseña")) {
+      setPasswordError("La contraseña es incorrecta");
+    } else if (msg.includes("correo") || msg.includes("email")) {
+      setEmailError("El correo no está registrado");
+    } else {
+      setPasswordError("Credenciales incorrectas");
+    }
+  };
+
+  // Maneja inicio de sesión
   const handleLogin = async () => {
     setEmailError("");
     setPasswordError("");
 
-    const isEmailValid = validateEmail(email);
-    const isPasswordValid = validatePassword(password);
-
-    if (!isEmailValid || !isPasswordValid) return;
+    if (!validateForm()) return;
 
     setLoading(true);
 
     try {
-      const response = await fetch(
-        "https://back-end-4803.onrender.com/api/users/loginMovil",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: email.trim(),
-            password: password,
-          }),
-        }
-      );
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: password,
+        }),
+      });
 
       const data = await response.json();
-
-      if (response.ok) {
-        if (!data.user?.id) {
-          setPasswordError("Error en el servidor");
-          return;
-        }
-
-        const token = data.user.id.toString();
-        const userData = {
-          id: data.user.id.toString(),
-          name: data.user.name || data.user.nombre || "Usuario",
-          email: data.user.email || email,
-        };
-
-        await login(token, userData);
-        
-        if (rememberMe) {
-          await AsyncStorage.setItem("savedEmail", email.trim());
-        } else {
-          await AsyncStorage.removeItem("savedEmail");
-        }
-        
-        router.replace("/(tabs)");
-      } else {
-        if (data.message) {
-          if (data.message.toLowerCase().includes("contraseña")) {
-            setPasswordError("La contraseña es incorrecta");
-          } else if (
-            data.message.toLowerCase().includes("correo") ||
-            data.message.toLowerCase().includes("email")
-          ) {
-            setEmailError("El correo no está registrado");
-          } else {
-            setPasswordError("Credenciales incorrectas");
-          }
-        } else {
-          setPasswordError("Credenciales incorrectas");
-        }
-      }
+      await handleServerResponse(response, data);
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
       Alert.alert(
@@ -188,29 +207,45 @@ export default function Login() {
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          ref={scrollViewRef}
+          contentContainerStyle={[
+            styles.scrollContent,
+            keyboardVisible && { flexGrow: 0 }
+          ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          bounces={false}
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.innerContainer}>
+            <View style={[
+              styles.innerContainer,
+              keyboardVisible && { minHeight: undefined }
+            ]}>
               <View style={styles.logoContainer}>
                 <Image source={logoImage} style={styles.logoImage} />
               </View>
 
-              <View style={styles.imageContainer}>
-                <Image source={dentistImage} style={styles.dentistImage} />
+              <View style={[
+                styles.imageContainer,
+                {
+                  flex: keyboardVisible ? 0 : 1,
+                  paddingTop: keyboardVisible ? 35 : height * 0.05,
+                  minHeight: keyboardVisible ? 0 : height * 0.4,
+                }
+              ]}>
+                {!keyboardVisible && (
+                  <Image source={dentistImage} style={styles.dentistImage} />
+                )}
               </View>
 
               <View style={styles.formContainer}>
                 <View style={styles.headerContainer}>
                   <Text style={styles.title}>Bienvenido</Text>
-                  <Text style={styles.subtitle}>
-                    Odontología Carol
-                  </Text>
+                  <Text style={styles.subtitle}>Odontología Carol</Text>
                   <Text style={styles.description}>Accede a tu cuenta dental</Text>
                 </View>
 
@@ -363,11 +398,8 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   imageContainer: {
-    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingTop: height * 0.05,
-    minHeight: height * 0.4,
   },
   dentistImage: {
     width: width * 0.65,
