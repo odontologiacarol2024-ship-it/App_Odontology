@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   View,
   TextInput,
@@ -14,17 +14,18 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { AuthContext } from "../../contexts/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import { Linking } from "react-native";
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import dentistImage from "../../assets/images/dentist.png";
 import logoImage from "../../assets/images/logo.png";
 
-const emailRegex =
-  /^[a-zA-Z0-9._%+-]+@(gmail|hotmail|outlook|yahoo|live|uthh\.edu)\.(com|mx)$/;
+const { width, height } = Dimensions.get("window");
+const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail|hotmail|outlook|yahoo|live|uthh\.edu)\.(com|mx)$/;
 
 export default function Login() {
   const router = useRouter();
@@ -35,10 +36,30 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+
+  useEffect(() => {
+    loadSavedEmail();
+  }, []);
 
   if (!auth) {
     return <Text>Error: Login debe estar dentro de AuthProvider</Text>;
   }
+
+  const { login } = auth;
+
+  // Carga el email guardado
+  const loadSavedEmail = async () => {
+    try {
+      const savedEmail = await AsyncStorage.getItem("savedEmail");
+      if (savedEmail) {
+        setEmail(savedEmail);
+        setRememberMe(true);
+      }
+    } catch (error) {
+      console.error("Error cargando email:", error);
+    }
+  };
 
   // Abre URL externa
   const handleOpenUrl = async (url: string) => {
@@ -62,8 +83,6 @@ export default function Login() {
   const handleRegister = () => {
     handleOpenUrl("https://odontologiacarol.com/register");
   };
-
-  const { login } = auth;
 
   // Valida el correo
   const validateEmail = (email: string): boolean => {
@@ -97,9 +116,7 @@ export default function Login() {
     const isEmailValid = validateEmail(email);
     const isPasswordValid = validatePassword(password);
 
-    if (!isEmailValid || !isPasswordValid) {
-      return;
-    }
+    if (!isEmailValid || !isPasswordValid) return;
 
     setLoading(true);
 
@@ -108,9 +125,7 @@ export default function Login() {
         "https://back-end-4803.onrender.com/api/users/loginMovil",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: email.trim(),
             password: password,
@@ -134,6 +149,13 @@ export default function Login() {
         };
 
         await login(token, userData);
+        
+        if (rememberMe) {
+          await AsyncStorage.setItem("savedEmail", email.trim());
+        } else {
+          await AsyncStorage.removeItem("savedEmail");
+        }
+        
         router.replace("/(tabs)");
       } else {
         if (data.message) {
@@ -169,126 +191,144 @@ export default function Login() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
+          contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-            <View style={{ flex: 1 }}>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.innerContainer}>
               <View style={styles.logoContainer}>
                 <Image source={logoImage} style={styles.logoImage} />
               </View>
 
-              <View style={styles.centerContent} pointerEvents="none">
+              <View style={styles.imageContainer}>
                 <Image source={dentistImage} style={styles.dentistImage} />
               </View>
 
               <View style={styles.formContainer}>
-                <Text style={styles.title}>Bienvenido a carol</Text>
-                <Text style={styles.subtitle}>Accede a tu cuenta dental</Text>
-
-                <View style={styles.inputContainer}>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      emailError ? styles.inputError : null,
-                    ]}
-                    placeholder="correo electrónico"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    placeholderTextColor="#888"
-                    returnKeyType="next"
-                    value={email}
-                    onChangeText={(text) => {
-                      setEmail(text);
-                      if (emailError) setEmailError("");
-                    }}
-                    editable={!loading}
-                  />
-                  <Ionicons
-                    name="mail-outline"
-                    size={20}
-                    color={emailError ? "#EF4444" : "#888"}
-                    style={styles.inputIcon}
-                  />
+                <View style={styles.headerContainer}>
+                  <Text style={styles.title}>Bienvenido</Text>
+                  <Text style={styles.subtitle}>
+                    Odontología Carol
+                  </Text>
+                  <Text style={styles.description}>Accede a tu cuenta dental</Text>
                 </View>
-                {emailError ? (
-                  <Text style={styles.errorText}>{emailError}</Text>
-                ) : null}
 
-                <View style={styles.inputContainer}>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      passwordError ? styles.inputError : null,
-                    ]}
-                    placeholder="contraseña"
-                    secureTextEntry={!showPassword}
-                    placeholderTextColor="#888"
-                    returnKeyType="done"
-                    value={password}
-                    onChangeText={(text) => {
-                      setPassword(text);
-                      if (passwordError) setPasswordError("");
-                    }}
-                    onSubmitEditing={handleLogin}
-                    editable={!loading}
-                  />
-                  <Ionicons
-                    name="lock-closed-outline"
-                    size={20}
-                    color={passwordError ? "#EF4444" : "#888"}
-                    style={styles.inputIcon}
-                  />
+                <View style={styles.formContent}>
+                  <View style={styles.inputWrapper}>
+                    <View style={styles.inputContainer}>
+                      <Ionicons
+                        name="mail-outline"
+                        size={20}
+                        color={emailError ? "#EF4444" : "#6B7280"}
+                        style={styles.inputIcon}
+                      />
+                      <TextInput
+                        style={[styles.input, emailError && styles.inputError]}
+                        placeholder="Correo electrónico"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        placeholderTextColor="#9CA3AF"
+                        returnKeyType="next"
+                        value={email}
+                        onChangeText={(text) => {
+                          setEmail(text);
+                          if (emailError) setEmailError("");
+                        }}
+                        editable={!loading}
+                      />
+                    </View>
+                    {emailError ? (
+                      <Text style={styles.errorText}>{emailError}</Text>
+                    ) : null}
+                  </View>
+
+                  <View style={styles.inputWrapper}>
+                    <View style={styles.inputContainer}>
+                      <Ionicons
+                        name="lock-closed-outline"
+                        size={20}
+                        color={passwordError ? "#EF4444" : "#6B7280"}
+                        style={styles.inputIcon}
+                      />
+                      <TextInput
+                        style={[styles.input, passwordError && styles.inputError]}
+                        placeholder="Contraseña"
+                        secureTextEntry={!showPassword}
+                        placeholderTextColor="#9CA3AF"
+                        returnKeyType="done"
+                        value={password}
+                        onChangeText={(text) => {
+                          setPassword(text);
+                          if (passwordError) setPasswordError("");
+                        }}
+                        onSubmitEditing={handleLogin}
+                        editable={!loading}
+                      />
+                      <TouchableOpacity
+                        onPress={() => setShowPassword(!showPassword)}
+                        style={styles.eyeIcon}
+                        disabled={loading}
+                      >
+                        <Ionicons
+                          name={showPassword ? "eye-outline" : "eye-off-outline"}
+                          size={20}
+                          color="#6B7280"
+                        />
+                      </TouchableOpacity>
+                    </View>
+                    {passwordError ? (
+                      <Text style={styles.errorText}>{passwordError}</Text>
+                    ) : null}
+                  </View>
+
+                  <View style={styles.optionsRow}>
+                    <TouchableOpacity
+                      style={styles.checkboxContainer}
+                      onPress={() => setRememberMe(!rememberMe)}
+                      disabled={loading}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons
+                        name={rememberMe ? "checkbox" : "square-outline"}
+                        size={22}
+                        color="#1E40AF"
+                      />
+                      <Text style={styles.checkboxLabel}>Recordar usuario</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={handleForgotPassword}
+                      disabled={loading}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.forgotText}>¿Olvidó su contraseña?</Text>
+                    </TouchableOpacity>
+                  </View>
+
                   <TouchableOpacity
-                    onPress={() => setShowPassword(!showPassword)}
-                    style={styles.eyeIcon}
+                    style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+                    onPress={handleLogin}
                     disabled={loading}
+                    activeOpacity={0.8}
                   >
-                    <Ionicons
-                      name={showPassword ? "eye-outline" : "eye-off-outline"}
-                      size={20}
-                      color="#888"
-                    />
-                  </TouchableOpacity>
-                </View>
-                {passwordError ? (
-                  <Text style={styles.errorText}>{passwordError}</Text>
-                ) : null}
-
-                <TouchableOpacity
-                  style={[
-                    styles.loginButton,
-                    loading && styles.loginButtonDisabled,
-                  ]}
-                  onPress={handleLogin}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <ActivityIndicator color="white" size="small" />
-                  ) : (
-                    <Text style={styles.loginButtonText}>Iniciar sesión</Text>
-                  )}
-                </TouchableOpacity>
-
-                <View style={styles.linkRow}>
-                  <TouchableOpacity
-                    onPress={handleForgotPassword}
-                    disabled={loading}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <Text style={styles.linkText}>¿Olvidó su contraseña?</Text>
+                    {loading ? (
+                      <ActivityIndicator color="white" size="small" />
+                    ) : (
+                      <Text style={styles.loginButtonText}>Iniciar sesión</Text>
+                    )}
                   </TouchableOpacity>
 
-                  <TouchableOpacity
-                    onPress={handleRegister}
-                    disabled={loading}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <Text style={[styles.linkText, styles.registerText]}>
-                      Registrarse
-                    </Text>
-                  </TouchableOpacity>
+                  <View style={styles.registerContainer}>
+                    <Text style={styles.registerQuestion}>¿No tienes cuenta?</Text>
+                    <TouchableOpacity
+                      onPress={handleRegister}
+                      disabled={loading}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.registerLink}>Regístrate aquí</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             </View>
@@ -304,112 +344,170 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#7BB7F2",
   },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  innerContainer: {
+    flex: 1,
+    minHeight: height,
+  },
   logoContainer: {
     position: "absolute",
-    top: 35,
-    left: 16,
+    top: Platform.OS === "ios" ? 40 : 30,
+    left: 20,
     zIndex: 10,
   },
   logoImage: {
-    width: 80,
-    height: 48,
+    width: width * 0.22,
+    height: width * 0.132,
+    resizeMode: "contain",
   },
-  centerContent: {
+  imageContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingTop: height * 0.05,
+    minHeight: height * 0.4,
   },
   dentistImage: {
-    width: 266,
-    height: 266,
-    position: "absolute",
-    top: "30%",
-    left: "50%",
-    transform: [{ translateX: -133 }],
+    width: width * 0.65,
+    height: width * 0.65,
+    resizeMode: "contain",
   },
   formContainer: {
     backgroundColor: "white",
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
+    paddingTop: 40,
+    paddingBottom: 32,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  headerContainer: {
     paddingHorizontal: 24,
-    paddingVertical: 32,
+    marginBottom: 32,
+    alignItems: "center",
   },
   title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "black",
-    textAlign: "center",
-    marginBottom: 8,
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#1F2937",
+    marginBottom: 4,
   },
   subtitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#1E40AF",
+    marginBottom: 8,
+  },
+  description: {
+    fontSize: 15,
     color: "#6B7280",
-    textAlign: "center",
-    marginBottom: 24,
+  },
+  formContent: {
+    paddingHorizontal: 24,
+  },
+  inputWrapper: {
+    marginBottom: 20,
   },
   inputContainer: {
-    width: "100%",
-    marginBottom: 8,
     position: "relative",
+    width: "100%",
   },
   input: {
     width: "100%",
-    height: 48,
-    borderWidth: 1,
+    height: 52,
+    borderWidth: 1.5,
     borderColor: "#D1D5DB",
-    borderRadius: 8,
+    borderRadius: 12,
     paddingLeft: 48,
     paddingRight: 48,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#F9FAFB",
+    fontSize: 15,
+    color: "#1F2937",
   },
   inputError: {
     borderColor: "#EF4444",
-    borderWidth: 2,
+    backgroundColor: "#FEF2F2",
   },
   inputIcon: {
     position: "absolute",
-    top: 14,
-    left: 12,
+    top: 16,
+    left: 14,
+    zIndex: 1,
   },
   eyeIcon: {
     position: "absolute",
-    top: 14,
-    right: 12,
+    top: 16,
+    right: 14,
+    zIndex: 1,
+    padding: 4,
   },
   errorText: {
     color: "#EF4444",
-    fontSize: 12,
-    marginBottom: 12,
+    fontSize: 13,
+    marginTop: 6,
     marginLeft: 4,
+    fontWeight: "500",
+  },
+  optionsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  checkboxLabel: {
+    fontSize: 14,
+    color: "#374151",
+    marginLeft: 8,
+  },
+  forgotText: {
+    fontSize: 13,
+    color: "#1E40AF",
+    fontWeight: "500",
   },
   loginButton: {
     backgroundColor: "#1E3A8A",
     paddingVertical: 16,
-    borderRadius: 24,
+    borderRadius: 12,
     width: "100%",
-    marginTop: 8,
+    shadowColor: "#1E3A8A",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   loginButtonDisabled: {
-    opacity: 0.7,
+    opacity: 0.6,
   },
   loginButtonText: {
     color: "white",
-    fontWeight: "bold",
+    fontWeight: "700",
     textAlign: "center",
-    fontSize: 18,
+    fontSize: 17,
+    letterSpacing: 0.5,
   },
-  linkRow: {
-    marginTop: 12,
-    width: "100%",
+  registerContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 4,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 24,
+    gap: 6,
   },
-  linkText: {
+  registerQuestion: {
+    fontSize: 14,
+    color: "#6B7280",
+  },
+  registerLink: {
     fontSize: 14,
     color: "#1E40AF",
-    textDecorationLine: "underline",
-  },
-  registerText: {
     fontWeight: "600",
   },
 });
