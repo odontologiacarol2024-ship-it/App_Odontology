@@ -246,7 +246,7 @@ export default function Login() {
                 <View style={styles.headerContainer}>
                   <Text style={styles.title}>Bienvenido</Text>
                   <Text style={styles.subtitle}>Odontología Carol</Text>
-                  <Text style={styles.description}>Accede a tu cuenta dental</Text>
+                  <Text style={styles.description}>Accede a tu cuenta personal dental</Text>
                 </View>
 
                 <View style={styles.formContent}>
