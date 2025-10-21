@@ -165,7 +165,10 @@ export default function TratamientosScreen() {
           ))}
         </View>
 
-        <TouchableOpacity style={styles.verProcesoButton}>
+        <TouchableOpacity 
+          style={styles.verProcesoButton}
+              onPress={() => router.push('/screens/procesoTratamiento')}
+        >
           <Text style={styles.verProcesoText}>Ver el proceso</Text>
         </TouchableOpacity>
 

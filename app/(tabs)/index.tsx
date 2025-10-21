@@ -94,7 +94,9 @@ export default function HomeScreen() {
                   Visualiza el avance de cada tratamiento paso a paso
                 </Text>
                 <View style={styles.buttonContainer}>
-                  <TouchableOpacity style={styles.buttonWhite}>
+                  <TouchableOpacity style={styles.buttonWhite}
+                   onPress={() => router.push('/screens/tratamientos')}
+                  >
                     <Text style={styles.buttonWhiteText}>Abrir</Text>
                     <Ionicons name="arrow-forward" size={16} color="#000" />
                   </TouchableOpacity>
@@ -119,7 +121,9 @@ export default function HomeScreen() {
                   Consulta tus citas pasadas y próximas
                 </Text>
                 <View style={styles.buttonContainer}>
-                  <TouchableOpacity style={styles.buttonWhite}>
+                  <TouchableOpacity style={styles.buttonWhite}
+                    //onPress={() => router.push('/screens/citas-pendientes')}
+                  >
                     <Text style={styles.buttonWhiteText}>Ver citas</Text>
                     <Ionicons name="arrow-forward" size={16} color="#000" />
                   </TouchableOpacity>
@@ -144,7 +148,9 @@ export default function HomeScreen() {
                   Revisa tus pagos realizados y estado de cuenta
                 </Text>
                 <View style={styles.buttonContainer}>
-                  <TouchableOpacity style={styles.buttonWhite}>
+                  <TouchableOpacity style={styles.buttonWhite}
+                      onPress={() => router.push('/screens/pagos')}
+                  >
                     <Text style={styles.buttonWhiteText}>Ver historial</Text>
                     <Ionicons name="arrow-forward" size={16} color="#000" />
                   </TouchableOpacity>
