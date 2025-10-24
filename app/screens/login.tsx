@@ -255,7 +255,7 @@ export default function Login() {
                       <Ionicons
                         name="mail-outline"
                         size={20}
-                        color={emailError ? "#EF4444" : "#6B7280"}
+                        color={emailError ? "#FCA5A5" : "rgba(255, 255, 255, 0.7)"}
                         style={styles.inputIcon}
                       />
                       <TextInput
@@ -263,7 +263,7 @@ export default function Login() {
                         placeholder="Correo electrónico"
                         keyboardType="email-address"
                         autoCapitalize="none"
-                        placeholderTextColor="#9CA3AF"
+                        placeholderTextColor="rgba(255, 255, 255, 0.5)"
                         returnKeyType="next"
                         value={email}
                         onChangeText={(text) => {
@@ -283,14 +283,14 @@ export default function Login() {
                       <Ionicons
                         name="lock-closed-outline"
                         size={20}
-                        color={passwordError ? "#EF4444" : "#6B7280"}
+                        color={passwordError ? "#FCA5A5" : "rgba(255, 255, 255, 0.7)"}
                         style={styles.inputIcon}
                       />
                       <TextInput
                         style={[styles.input, passwordError && styles.inputError]}
                         placeholder="Contraseña"
                         secureTextEntry={!showPassword}
-                        placeholderTextColor="#9CA3AF"
+                        placeholderTextColor="rgba(255, 255, 255, 0.5)"
                         returnKeyType="done"
                         value={password}
                         onChangeText={(text) => {
@@ -308,7 +308,7 @@ export default function Login() {
                         <Ionicons
                           name={showPassword ? "eye-outline" : "eye-off-outline"}
                           size={20}
-                          color="#6B7280"
+                          color="rgba(255, 255, 255, 0.7)"
                         />
                       </TouchableOpacity>
                     </View>
@@ -327,7 +327,7 @@ export default function Login() {
                       <Ionicons
                         name={rememberMe ? "checkbox" : "square-outline"}
                         size={22}
-                        color="#1E40AF"
+                        color="#FFF"
                       />
                       <Text style={styles.checkboxLabel}>Recordar usuario</Text>
                     </TouchableOpacity>
@@ -345,7 +345,7 @@ export default function Login() {
                     style={[styles.loginButton, loading && styles.loginButtonDisabled]}
                     onPress={handleLogin}
                     disabled={loading}
-                    activeOpacity={0.8}
+                    activeOpacity={0.7}
                   >
                     {loading ? (
                       <ActivityIndicator color="white" size="small" />
@@ -377,7 +377,7 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#7BB7F2",
+    backgroundColor: "#2563EB",
   },
   scrollContent: {
     flexGrow: 1,
@@ -407,16 +407,19 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   formContainer: {
-    backgroundColor: "white",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     paddingTop: 40,
     paddingBottom: 32,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: -8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
     elevation: 8,
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+    borderBottomWidth: 0,
   },
   headerContainer: {
     paddingHorizontal: 24,
@@ -426,18 +429,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "700",
-    color: "#1F2937",
+    color: "#FFF",
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 20,
     fontWeight: "600",
-    color: "#1E40AF",
+    color: "#FFF",
     marginBottom: 8,
   },
   description: {
     fontSize: 15,
-    color: "#6B7280",
+    color: "rgba(255, 255, 255, 0.85)",
   },
   formContent: {
     paddingHorizontal: 24,
@@ -452,18 +455,24 @@ const styles = StyleSheet.create({
   input: {
     width: "100%",
     height: 52,
-    borderWidth: 1.5,
-    borderColor: "#D1D5DB",
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.25)",
     borderRadius: 12,
     paddingLeft: 48,
     paddingRight: 48,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
     fontSize: 15,
-    color: "#1F2937",
+    color: "#FFF",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 3,
   },
   inputError: {
-    borderColor: "#EF4444",
-    backgroundColor: "#FEF2F2",
+    borderColor: "#FCA5A5",
+    backgroundColor: "rgba(239, 68, 68, 0.2)",
+    borderWidth: 2,
   },
   inputIcon: {
     position: "absolute",
@@ -479,11 +488,11 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   errorText: {
-    color: "#EF4444",
+    color: "#FCA5A5",
     fontSize: 13,
     marginTop: 6,
     marginLeft: 4,
-    fontWeight: "500",
+    fontWeight: "600",
   },
   optionsRow: {
     flexDirection: "row",
@@ -497,24 +506,29 @@ const styles = StyleSheet.create({
   },
   checkboxLabel: {
     fontSize: 14,
-    color: "#374151",
+    color: "#FFF",
     marginLeft: 8,
+    fontWeight: "500",
   },
   forgotText: {
     fontSize: 13,
-    color: "#1E40AF",
-    fontWeight: "500",
+    color: "#FFF",
+    fontWeight: "600",
   },
   loginButton: {
-    backgroundColor: "#1E3A8A",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     paddingVertical: 16,
     borderRadius: 12,
     width: "100%",
-    shadowColor: "#1E3A8A",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 6,
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    borderBottomWidth: 6,
+    borderBottomColor: "rgba(0, 0, 0, 0.5)",
   },
   loginButtonDisabled: {
     opacity: 0.6,
@@ -535,11 +549,11 @@ const styles = StyleSheet.create({
   },
   registerQuestion: {
     fontSize: 14,
-    color: "#6B7280",
+    color: "rgba(255, 255, 255, 0.85)",
   },
   registerLink: {
     fontSize: 14,
-    color: "#1E40AF",
-    fontWeight: "600",
+    color: "#FFF",
+    fontWeight: "700",
   },
 });
