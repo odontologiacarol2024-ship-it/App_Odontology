@@ -86,7 +86,7 @@ export default function HomeScreen() {
           <TouchableOpacity 
             style={styles.card} 
             activeOpacity={0.7}
-            onPress={() => router.push('/screens/tratamiento')}
+            onPress={() => router.push('/screens/tratamientos')}
           >
             <View style={styles.cardIcon}>
               <MaterialCommunityIcons name="tooth-outline" size={40} color="#FFF" />
