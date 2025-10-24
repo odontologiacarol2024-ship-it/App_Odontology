@@ -7,210 +7,202 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
+  TextInput,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 export default function TratamientosScreen() {
   const router = useRouter();
-  const [selectedFilter, setSelectedFilter] = useState('Ortodoncia');
+  const [selectedFilter, setSelectedFilter] = useState('Todos');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const citasPasadas = [
+  const tratamientos = [
     {
       id: 1,
-      titulo: 'Cita 1',
-      fecha: '24 de septiembre de 2025',
-      hora: '10:00 am',
-      tratamiento: 'Ortodoncia - Ajuste de Brackets',
+      titulo: 'Ortodoncia',
+      progreso: 65,
+      proximaCita: '28 Oct 2025',
+      doctor: 'Dra. Carol García',
+      estado: 'activo',
     },
     {
       id: 2,
-      titulo: 'Cita 2',
-      fecha: '15 de Octubre de 2025',
-      hora: '11:00 am',
-      tratamiento: 'Ortodoncia - Revisión Mensual',
+      titulo: 'Limpieza Dental',
+      progreso: 30,
+      proximaCita: '5 Nov 2025',
+      doctor: 'Dr. Luis Mendoza',
+      estado: 'activo',
     },
     {
       id: 3,
-      titulo: 'Cita 3',
-      fecha: '5 de Noviembre de 2025',
-      hora: '10:30 am',
-      tratamiento: 'Ortodoncia - Cambio de ligas',
+      titulo: 'Extracción',
+      progreso: 100,
+      proximaCita: 'Completado',
+      doctor: 'Dr. Carlos Ruiz',
+      estado: 'completado',
     },
   ];
 
-  const citasPendientes = [
-    {
-      id: 6,
-      titulo: 'Cita 6',
-      fecha: '22 de Diciembre de 2025',
-      hora: '10:00 am',
-      tratamiento: 'Ortodoncia - Ajuste de Brackets',
-    },
-  ];
+  const filtros = ['Todos', 'Activos', 'Completados'];
+
+  const tratamientosFiltrados = tratamientos.filter(t => {
+    if (selectedFilter === 'Activos') return t.estado === 'activo';
+    if (selectedFilter === 'Completados') return t.estado === 'completado';
+    const matchSearch = t.titulo.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchSearch;
+  });
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#2563EB" />
       
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/(tabs)')} style={styles.backButton} activeOpacity={0.7}>
-          <Ionicons name="arrow-back" size={26} color="#FFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tratamientos</Text>
-        <View style={styles.placeholder} />
-      </View>
-
-      {/* Info Card */}
-      <View style={styles.infoCard}>
-        <MaterialCommunityIcons name="tooth-outline" size={36} color="#FFF" />
-        <Text style={styles.infoTitle}>Historial de tratamientos</Text>
-        <Text style={styles.infoSubtitle}>
-          Consulta tus citas pasadas y próximas
-        </Text>
-      </View>
-
-      {/* Filtros */}
-      <View style={styles.filtersContainer}>
-        <TouchableOpacity
-          style={[
-            styles.filterButton,
-            selectedFilter === 'Ortodoncia' && styles.filterButtonActive,
-          ]}
-          onPress={() => setSelectedFilter('Ortodoncia')}
-          activeOpacity={0.7}
-        >
-          <Text
-            style={[
-              styles.filterText,
-              selectedFilter === 'Ortodoncia' && styles.filterTextActive,
-            ]}
-          >
-            Ortodoncia
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.filterButton,
-            selectedFilter === 'Extracción' && styles.filterButtonActive,
-          ]}
-          onPress={() => setSelectedFilter('Extracción')}
-          activeOpacity={0.7}
-        >
-          <Text
-            style={[
-              styles.filterText,
-              selectedFilter === 'Extracción' && styles.filterTextActive,
-            ]}
-          >
-            Extracción dental
-          </Text>
-        </TouchableOpacity>
-      </View>
-
       <ScrollView 
         style={styles.scrollView} 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
       >
-        {/* Citas Pasadas */}
-        <View style={styles.section}>
-          {citasPasadas.map((cita) => (
-            <View key={cita.id} style={styles.citaCard}>
-              <View style={styles.citaHeader}>
-                <View style={styles.iconContainer}>
-                  <Ionicons name="calendar" size={28} color="#FFF" />
-                </View>
-                <View style={styles.citaInfo}>
-                  <Text style={styles.citaTitle}>{cita.titulo}</Text>
-                  <View style={styles.dateRow}>
-                    <Ionicons name="calendar-outline" size={14} color="rgba(255, 255, 255, 0.8)" />
-                    <Text style={styles.citaDate}>{cita.fecha}</Text>
-                  </View>
-                  <View style={styles.dateRow}>
-                    <Ionicons name="time-outline" size={14} color="rgba(255, 255, 255, 0.8)" />
-                    <Text style={styles.citaTime}>{cita.hora}</Text>
-                  </View>
-                </View>
-              </View>
-
-              <View style={styles.tratamientoContainer}>
-                <Text style={styles.tratamientoLabel}>Tratamiento realizado</Text>
-                <Text style={styles.citaTratamiento}>{cita.tratamiento}</Text>
-              </View>
-
-              <TouchableOpacity
-                style={styles.verDetallesButton}
-                onPress={() => router.push('/screens/detalle-cita')}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.verDetallesText}>Ver detalles de la cita</Text>
-                <Ionicons name="chevron-forward" size={18} color="#FFF" />
-              </TouchableOpacity>
-            </View>
-          ))}
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.push('/(tabs)')} style={styles.backButton} activeOpacity={0.7}>
+            <Ionicons name="arrow-back" size={26} color="#FFF" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Mis Tratamientos</Text>
+          <View style={styles.placeholder} />
         </View>
 
-        {/* Separador */}
-        <View style={styles.separatorContainer}>
-          <View style={styles.separatorLine} />
-          <View style={styles.separatorIcon}>
-            <Ionicons name="chevron-down" size={24} color="#FFF" />
+        {/* Búsqueda */}
+        <View style={styles.searchContainer}>
+          <View style={styles.searchBox}>
+            <Ionicons name="search" size={20} color="rgba(255, 255, 255, 0.7)" />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Buscar tratamiento..."
+              placeholderTextColor="rgba(255, 255, 255, 0.5)"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')} activeOpacity={0.7}>
+                <Ionicons name="close-circle" size={20} color="rgba(255, 255, 255, 0.7)" />
+              </TouchableOpacity>
+            )}
           </View>
-          <View style={styles.separatorLine} />
         </View>
 
-        {/* Pendientes Header */}
-        <View style={styles.pendientesHeader}>
-          <MaterialCommunityIcons name="clock-outline" size={28} color="#FFF" />
-          <Text style={styles.pendientesTitle}>Citas Pendientes</Text>
-        </View>
-
-        {/* Citas Pendientes */}
-        <View style={styles.section}>
-          {citasPendientes.map((cita) => (
-            <View key={cita.id} style={[styles.citaCard, styles.citaPendiente]}>
-              <View style={styles.citaHeader}>
-                <View style={[styles.iconContainer, styles.iconPendiente]}>
-                  <Ionicons name="calendar" size={28} color="#FFF" />
-                </View>
-                <View style={styles.citaInfo}>
-                  <Text style={styles.citaTitle}>{cita.titulo}</Text>
-                  <View style={styles.dateRow}>
-                    <Ionicons name="calendar-outline" size={14} color="rgba(255, 255, 255, 0.8)" />
-                    <Text style={styles.citaDate}>{cita.fecha}</Text>
-                  </View>
-                  <View style={styles.dateRow}>
-                    <Ionicons name="time-outline" size={14} color="rgba(255, 255, 255, 0.8)" />
-                    <Text style={styles.citaTime}>{cita.hora}</Text>
-                  </View>
-                </View>
-              </View>
-
-              <View style={styles.tratamientoContainer}>
-                <Text style={styles.tratamientoLabel}>Tratamiento programado</Text>
-                <Text style={styles.citaTratamiento}>{cita.tratamiento}</Text>
-              </View>
-
-              <TouchableOpacity
-                style={[styles.verDetallesButton, styles.verDetallesButtonPending]}
-                onPress={() => router.push('/screens/detalle-cita')}
-                activeOpacity={0.7}
+        {/* Filtros */}
+        <View style={styles.filtersContainer}>
+          {filtros.map((filtro) => (
+            <TouchableOpacity
+              key={filtro}
+              style={[
+                styles.filterButton,
+                selectedFilter === filtro && styles.filterButtonActive,
+              ]}
+              onPress={() => setSelectedFilter(filtro)}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={[
+                  styles.filterText,
+                  selectedFilter === filtro && styles.filterTextActive,
+                ]}
               >
-                <Text style={styles.verDetallesText}>Ver detalles de la cita</Text>
-                <Ionicons name="chevron-forward" size={18} color="#FFF" />
-              </TouchableOpacity>
-            </View>
+                {filtro}
+              </Text>
+              {selectedFilter === filtro && (
+                <Ionicons name="checkmark-circle" size={20} color="#2563EB" />
+              )}
+            </TouchableOpacity>
           ))}
         </View>
 
-        {/* Botón Ver Proceso */}
-        <TouchableOpacity style={styles.verProcesoButton} activeOpacity={0.7}>
-          <MaterialCommunityIcons name="chart-timeline-variant" size={22} color="#FFF" />
-          <Text style={styles.verProcesoText}>Ver el proceso completo</Text>
-        </TouchableOpacity>
+        {/* Tratamientos */}
+        <View style={styles.section}>
+          {tratamientosFiltrados.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="folder-open-outline" size={64} color="rgba(255, 255, 255, 0.4)" />
+              <Text style={styles.emptyText}>No hay tratamientos</Text>
+            </View>
+          ) : (
+            tratamientosFiltrados.map((tratamiento) => (
+              <View 
+                key={tratamiento.id} 
+                style={[
+                  styles.tratamientoCard,
+                  tratamiento.estado === 'completado' && styles.cardCompletado
+                ]}
+              >
+                {/* Header */}
+                <View style={styles.cardHeader}>
+                  <View style={[
+                    styles.iconBox,
+                    tratamiento.estado === 'completado' && styles.iconBoxCompletado
+                  ]}>
+                    <MaterialCommunityIcons 
+                      name="tooth-outline" 
+                      size={24} 
+                      color="#FFF" 
+                    />
+                  </View>
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.cardTitle}>{tratamiento.titulo}</Text>
+                    <Text style={styles.cardDoctor}>{tratamiento.doctor}</Text>
+                  </View>
+                  {tratamiento.estado === 'completado' && (
+                    <View style={styles.badgeCompletado}>
+                      <Ionicons name="checkmark-circle" size={20} color="#FFF" />
+                    </View>
+                  )}
+                </View>
+
+                {/* Progreso */}
+                <View style={styles.progressSection}>
+                  <View style={styles.progressInfo}>
+                    <Text style={styles.progressLabel}>Progreso</Text>
+                    <Text style={styles.progressPercent}>{tratamiento.progreso}%</Text>
+                  </View>
+                  <View style={styles.progressBar}>
+                    <View 
+                      style={[
+                        styles.progressFill, 
+                        { width: `${tratamiento.progreso}%` },
+                        tratamiento.estado === 'completado' && styles.progressCompletado
+                      ]} 
+                    />
+                  </View>
+                </View>
+
+                {/* Próxima cita */}
+                <View style={styles.citaInfo}>
+                  <Ionicons name="calendar-outline" size={16} color="rgba(255, 255, 255, 0.8)" />
+                  <Text style={styles.citaText}>Próxima cita: {tratamiento.proximaCita}</Text>
+                </View>
+
+                {/* Botones */}
+                <TouchableOpacity 
+                  style={styles.actionButton}
+                  onPress={() => router.push('/screens/detalle-tratamientos')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.actionButtonText}>Ver Detalles</Text>
+                  <Ionicons name="chevron-forward" size={20} color="#FFF" />
+                </TouchableOpacity>
+                
+                {tratamiento.estado === 'activo' && (
+                  <TouchableOpacity 
+                    style={styles.actionButtonSecondary}
+                    onPress={() => router.push('/screens/citas')}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="calendar" size={20} color="#FFF" />
+                    <Text style={styles.actionButtonText}>Ver Citas</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ))
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -220,6 +212,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#2563EB',
+  },
+  scrollView: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -238,11 +233,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.25)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 4,
     borderBottomWidth: 4,
     borderBottomColor: 'rgba(0, 0, 0, 0.4)',
   },
@@ -254,246 +244,210 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 44,
   },
-  infoCard: {
-    marginHorizontal: 24,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    borderRadius: 20,
-    padding: 24,
-    marginBottom: 20,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 6,
-    borderBottomWidth: 5,
-    borderBottomColor: 'rgba(0, 0, 0, 0.4)',
-  },
-  infoTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#FFF',
-    marginTop: 12,
-    marginBottom: 6,
-  },
-  infoSubtitle: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
-    textAlign: 'center',
-  },
-  filtersContainer: {
-    flexDirection: 'row',
+  searchContainer: {
     paddingHorizontal: 24,
-    paddingBottom: 20,
-    gap: 12,
+    marginBottom: 20,
   },
-  filterButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.2)',
     borderBottomWidth: 3,
     borderBottomColor: 'rgba(0, 0, 0, 0.4)',
+    gap: 10,
+  },
+  searchInput: {
+    flex: 1,
+    color: '#FFF',
+    fontSize: 15,
+  },
+  filtersContainer: {
+    paddingHorizontal: 24,
+    marginBottom: 20,
+    gap: 12,
+  },
+  filterButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderBottomWidth: 3,
+    borderBottomColor: 'rgba(0, 0, 0, 0.3)',
   },
   filterButtonActive: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderColor: 'rgba(255, 255, 255, 0.4)',
+    backgroundColor: '#FFF',
+    borderColor: '#FFF',
     borderBottomWidth: 4,
+    borderBottomColor: 'rgba(0, 0, 0, 0.15)',
   },
   filterText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.9)',
   },
   filterTextActive: {
-    color: '#FFF',
+    color: '#2563EB',
     fontWeight: '700',
-  },
-  scrollView: {
-    flex: 1,
   },
   section: {
     paddingHorizontal: 24,
   },
-  citaCard: {
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 80,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 16,
+  },
+  tratamientoCard: {
     backgroundColor: 'rgba(0, 0, 0, 0.35)',
     borderRadius: 18,
     padding: 20,
-    marginBottom: 20,
+    marginBottom: 16,
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.25)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 8,
     borderBottomWidth: 6,
     borderBottomColor: 'rgba(0, 0, 0, 0.5)',
   },
-  citaPendiente: {
-    borderColor: 'rgba(251, 191, 36, 0.4)',
+  cardCompletado: {
+    borderColor: 'rgba(34, 197, 94, 0.4)',
   },
-  citaHeader: {
+  cardHeader: {
     flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 16,
   },
-  iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
+  iconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
+    marginRight: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
     borderBottomWidth: 3,
     borderBottomColor: 'rgba(0, 0, 0, 0.4)',
   },
-  iconPendiente: {
-    backgroundColor: 'rgba(251, 191, 36, 0.3)',
+  iconBoxCompletado: {
+    backgroundColor: 'rgba(34, 197, 94, 0.3)',
+    borderColor: 'rgba(34, 197, 94, 0.4)',
   },
-  citaInfo: {
+  cardInfo: {
     flex: 1,
-    gap: 4,
   },
-  citaTitle: {
+  cardTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#FFF',
     marginBottom: 4,
   },
-  dateRow: {
+  cardDoctor: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.85)',
+  },
+  badgeCompletado: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(34, 197, 94, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(34, 197, 94, 0.5)',
+  },
+  progressSection: {
+    marginBottom: 14,
+  },
+  progressInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  progressLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.75)',
+  },
+  progressPercent: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFF',
+  },
+  progressBar: {
+    height: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#FFF',
+    borderRadius: 5,
+  },
+  progressCompletado: {
+    backgroundColor: 'rgba(34, 197, 94, 0.9)',
+  },
+  citaInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
+    marginBottom: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: 10,
   },
-  citaDate: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.9)',
-  },
-  citaTime: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.9)',
-  },
-  tratamientoContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-  },
-  tratamientoLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.7)',
-    marginBottom: 4,
-    textTransform: 'uppercase',
-  },
-  citaTratamiento: {
+  citaText: {
     fontSize: 14,
-    color: '#FFF',
-    lineHeight: 20,
+    color: 'rgba(255, 255, 255, 0.95)',
+    fontWeight: '500',
   },
-  verDetallesButton: {
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderBottomWidth: 3,
+    borderBottomColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  actionButtonSecondary: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(34, 197, 94, 0.9)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     paddingVertical: 14,
-    borderRadius: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
     gap: 8,
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.2)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-    borderBottomWidth: 5,
-    borderBottomColor: 'rgba(21, 128, 61, 0.9)',
-  },
-  verDetallesButtonPending: {
-    backgroundColor: 'rgba(251, 191, 36, 0.9)',
-    borderBottomColor: 'rgba(217, 119, 6, 0.9)',
-  },
-  verDetallesText: {
-    color: '#FFF',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  separatorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    marginVertical: 8,
-    marginBottom: 20,
-  },
-  separatorLine: {
-    flex: 1,
-    height: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  separatorIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 12,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
     borderBottomWidth: 3,
     borderBottomColor: 'rgba(0, 0, 0, 0.4)',
   },
-  pendientesHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    marginHorizontal: 24,
-    paddingVertical: 16,
-    borderRadius: 16,
-    marginBottom: 20,
-    gap: 12,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
-    borderBottomWidth: 4,
-    borderBottomColor: 'rgba(0, 0, 0, 0.4)',
-  },
-  pendientesTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FFF',
-  },
-  verProcesoButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    marginHorizontal: 24,
-    paddingVertical: 16,
-    borderRadius: 16,
-    marginTop: 8,
-    gap: 10,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 8,
-    borderBottomWidth: 6,
-    borderBottomColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  verProcesoText: {
-    fontSize: 16,
+  actionButtonText: {
+    fontSize: 15,
     fontWeight: '700',
     color: '#FFF',
   },
