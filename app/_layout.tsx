@@ -109,14 +109,18 @@ function LayoutContent() {
 
   const { loading, isLoggedIn } = auth;
 
-  // Pantalla de carga mejorada
   if (loading) {
     return <LoadingScreen />;
   }
 
-  // Navegación condicional basada en autenticación
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack 
+      screenOptions={{ 
+        headerShown: false,
+        contentStyle: { backgroundColor: '#2563EB' },
+        animation: 'slide_from_right'
+      }}
+    >
       {isLoggedIn ? (
         <>
           <Stack.Screen name="(tabs)" />
@@ -139,7 +143,6 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
-  // Estilos de pantalla de carga
   loadingContainer: {
     flex: 1,
     backgroundColor: "#7BB7F2",
@@ -228,7 +231,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     width: 24,
   },
-  // Estilos de error
   errorContainer: {
     flex: 1,
     justifyContent: "center",
