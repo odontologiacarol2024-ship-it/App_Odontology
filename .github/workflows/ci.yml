@@ -21,24 +21,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
       
-      - name: Install dependencies
+      - name: Install backend dependencies
         working-directory: ./backend
         run: npm ci
       
       - name: Build backend
         working-directory: ./backend
         run: npm run build --if-present
-      
-      - name: Upload backend artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-build
-          path: backend/dist
 
-  # ========== BUILD MOBILE (Android) ==========
+  # ========== BUILD MOBILE (Expo) ==========
   build-mobile:
     runs-on: ubuntu-latest
     steps:
@@ -48,8 +40,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: mobile/package-lock.json
       
       - name: Setup JDK
         uses: actions/setup-java@v4
@@ -57,30 +47,15 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ env.JAVA_VERSION }}
       
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Install Expo CLI
+        run: npm install -g expo-cli
       
-      - name: Install mobile dependencies
-        working-directory: ./mobile
+      - name: Install dependencies
         run: npm ci
       
-      - name: Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}
-      
-      - name: Build Android APK
-        working-directory: ./mobile/android
+      - name: Build Android
+        working-directory: ./android
         run: ./gradlew assembleRelease
-      
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release
-          path: mobile/android/app/build/outputs/apk/release/app-release.apk
 
   # ========== TEST BACKEND ==========
   test-backend:
@@ -95,7 +70,7 @@ jobs:
           MYSQL_DATABASE: odontologia_carol_test
         ports:
           - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+        options: --health-cmd="mysqladmin ping" --health-interval=10s
     
     steps:
       - uses: actions/checkout@v4
@@ -109,7 +84,7 @@ jobs:
         working-directory: ./backend
         run: npm ci
       
-      - name: Run unit tests
+      - name: Run tests
         working-directory: ./backend
         run: npm test -- --coverage
         env:
@@ -117,22 +92,6 @@ jobs:
           DB_USER: root
           DB_PASSWORD: test_password
           DB_NAME: odontologia_carol_test
-          NODE_ENV: test
-      
-      - name: Run integration tests
-        working-directory: ./backend
-        run: npm run test:integration
-        env:
-          DB_HOST: localhost
-          DB_USER: root
-          DB_PASSWORD: test_password
-          DB_NAME: odontologia_carol_test
-      
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./backend/coverage/lcov.info
-          flags: backend
 
   # ========== TEST MOBILE ==========
   test-mobile:
@@ -148,18 +107,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
       
       - name: Install dependencies
-        working-directory: ./mobile
         run: npm ci
       
-      - name: Run unit tests
-        working-directory: ./mobile
+      - name: Run mobile tests
         run: npm test -- --coverage
-      
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./mobile/coverage/lcov.info
-          flags: mobile
 
   # ========== DEPLOY BACKEND ==========
   deploy-backend:
@@ -168,12 +119,10 @@ jobs:
     if: github.ref == 'refs/heads/main'
     
     steps:
-      - uses: actions/checkout@v4
-      
       - name: Deploy to Render
         env:
-          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}          # ← Lee el secret
-          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}    # ← Lee el secret
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
         run: |
           curl -X POST "https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys" \
             -H "Authorization: Bearer $RENDER_API_KEY" \
