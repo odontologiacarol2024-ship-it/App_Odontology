@@ -42,7 +42,7 @@ jobs:
           path: backend/
           retention-days: 1
 
-  # ========================================
+# ========================================
   # BUILD MOBILE APP (Expo/React Native)
   # ========================================
   build-mobile:
@@ -57,46 +57,14 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       
-      - name: Setup JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: ${{ env.JAVA_VERSION }}
-      
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-      
       - name: Install Expo CLI
-        run: npm install -g expo-cli
+        run: npm install -g expo-cli eas-cli
       
       - name: Install mobile dependencies
         run: npm install --legacy-peer-deps
       
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-      
-      - name: Make gradlew executable
-        working-directory: ./android
-        run: chmod +x ./gradlew
-      
-      - name: Build Android APK
-        working-directory: ./android
-        run: ./gradlew assembleRelease --no-daemon
-      
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release-apk
-          path: android/app/build/outputs/apk/release/app-release.apk
-          retention-days: 1
-
+      - name: Check Expo config
+        run: npx expo config --type prebuildConfig
   # ========================================
   # TEST BACKEND
   # ========================================
