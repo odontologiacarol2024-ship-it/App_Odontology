@@ -48,6 +48,34 @@ jobs:
       
       - name: Validate Expo config
         run: npx expo config --type introspect
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+      
+      - name: Build APK
+        run: |
+          npx expo prebuild --platform android
+          cd android
+          chmod +x ./gradlew
+          ./gradlew assembleRelease
+        env:
+          EXPO_NO_TELEMETRY: 1
+      
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
 
   test-backend:
     runs-on: ubuntu-latest
