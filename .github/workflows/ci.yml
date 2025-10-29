@@ -47,7 +47,7 @@ jobs:
         run: npm install --legacy-peer-deps
       
       - name: Validate Expo config
-        run: npx expo config --type prebuildConfig
+        run: npx expo config --type introspect
 
   test-backend:
     runs-on: ubuntu-latest
