@@ -86,7 +86,7 @@ jobs:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD_TEST }}
-          MYSQL_DATABASE: odontologia_carol_test
+          MYSQL_DATABASE: ${{ secrets.DB_NAME_TEST }}
         ports:
           - 3306:3306
         options: >-
@@ -113,7 +113,7 @@ jobs:
       - name: Wait for MySQL
         run: |
           for i in {1..30}; do
-            if mysqladmin ping -h 127.0.0.1 -P 3306 --silent; then
+            if mysqladmin ping -h ${{ secrets.DB_HOST_TEST }} -P ${{ secrets.DB_PORT_TEST }} --silent; then
               echo "MySQL is ready"
               break
             fi
@@ -125,12 +125,12 @@ jobs:
         working-directory: ./backend
         run: npm test -- --coverage --detectOpenHandles
         env:
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_USER: root
+          DB_HOST: ${{ secrets.DB_HOST_TEST }}
+          DB_PORT: ${{ secrets.DB_PORT_TEST }}
+          DB_USER: ${{ secrets.DB_USER_TEST }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD_TEST }}
-          DB_NAME: odontologia_carol_test
-          NODE_ENV: test
+          DB_NAME: ${{ secrets.DB_NAME_TEST }}
+          NODE_ENV: ${{ secrets.NODE_ENV_TEST }}
           JWT_SECRET: ${{ secrets.JWT_SECRET_TEST }}
 
   test-mobile:
