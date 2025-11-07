@@ -85,7 +85,7 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: test_password
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD_TEST }}
           MYSQL_DATABASE: odontologia_carol_test
         ports:
           - 3306:3306
@@ -123,15 +123,15 @@ jobs:
       
       - name: Run backend tests
         working-directory: ./backend
-        run: npm test -- --coverage --forceExit --detectOpenHandles
+        run: npm test -- --coverage --detectOpenHandles
         env:
           DB_HOST: 127.0.0.1
           DB_PORT: 3306
           DB_USER: root
-          DB_PASSWORD: test_password
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD_TEST }}
           DB_NAME: odontologia_carol_test
           NODE_ENV: test
-          JWT_SECRET: test_secret_key
+          JWT_SECRET: ${{ secrets.JWT_SECRET_TEST }}
 
   test-mobile:
     runs-on: ubuntu-latest
@@ -151,7 +151,7 @@ jobs:
         run: npm install --legacy-peer-deps
       
       - name: Run mobile tests
-        run: npm test -- --coverage --forceExit
+        run: npm test -- --coverage
 
   deploy-backend:
     runs-on: ubuntu-latest
